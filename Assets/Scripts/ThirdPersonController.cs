@@ -46,6 +46,9 @@ namespace StarterAssets
         [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
         public float FallTimeout = 0.15f;
 
+        [Tooltip("Time required to pass before being able to attack again. Set to 0f to instantly attack again")]
+        public float AttackTimeout = 0.50f;
+
         [Header("Player Grounded")]
         [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
         public bool Grounded = true;
@@ -90,11 +93,13 @@ namespace StarterAssets
         // timeout deltatime
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
+        private float _attackTimeoutDelta;
 
         // animation IDs
         private int _animIDSpeed;
         private int _animIDGrounded;
         private int _animIDJump;
+        private int _animIDAttack;
         private int _animIDFreeFall;
         private int _animIDMotionSpeed;
 
@@ -157,6 +162,7 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();
+            AttackAndGravity();
             GroundedCheck();
             Move();
         }
@@ -172,6 +178,7 @@ namespace StarterAssets
             _animIDGrounded = Animator.StringToHash("Grounded");
             _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
+            _animIDAttack = Animator.StringToHash("Attack");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
         }
 
@@ -345,6 +352,65 @@ namespace StarterAssets
             if (_verticalVelocity < _terminalVelocity)
             {
                 _verticalVelocity += Gravity * Time.deltaTime;
+            }
+        }
+
+        private void AttackAndGravity()
+        {
+            if (Grounded)
+            {
+                // update animator if using character
+                if (_hasAnimator)
+                {
+                    _animator.SetBool(_animIDAttack, false);
+                }
+
+                Debug.Log("attaque ? :" + _input.attack);
+                Debug.Log(_attackTimeoutDelta);
+                // Attack
+                if (_input.attack && _attackTimeoutDelta <= 0.0f)
+                {
+                    Debug.Log("je passe le input d'attaque");
+                    //TODO
+                    //Attack()
+
+                    // update animator if using character
+                    if (_hasAnimator)
+                    {
+                        Debug.Log("je lance l'anim");
+                        _animator.SetBool(_animIDAttack, true);
+                    }
+                    _input.attack = false;
+                    _attackTimeoutDelta = AttackTimeout;
+                }
+
+                // attack timeout
+                if (_attackTimeoutDelta >= 0.0f)
+                {
+                    _attackTimeoutDelta -= Time.deltaTime;
+                }
+            }
+            else
+            {
+                // // reset the jump timeout timer
+                // _attackTimeoutDelta = AttackTimeout;
+
+                // // fall timeout
+                // if (_fallTimeoutDelta >= 0.0f)
+                // {
+                //     _fallTimeoutDelta -= Time.deltaTime;
+                // }
+                // else
+                // {
+                //     // update animator if using character
+                //     if (_hasAnimator)
+                //     {
+                //         _animator.SetBool(_animIDFreeFall, true);
+                //     }
+                // }
+
+                // // if we are not grounded, do not jump
+                // _input.jump = false;
             }
         }
 
