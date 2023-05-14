@@ -14,20 +14,24 @@ public class WeaponController : MonoBehaviour
     private GameObject _particle;
     private int _weaponDamages = 5;
 
-    private void OnTriggerEnter(Collider other) {
-        Debug.Log("collision");
-        Debug.Log(thirdPersonController.isAttacking);
-        if(other.transform.tag == "Enemy" && thirdPersonController.isAttacking)
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.transform.tag == "Enemy" && thirdPersonController.isAttacking)
         {
-            //particles
-            _particle = Instantiate(_hitParticles, 
-                new Vector3(other.transform.position.x, transform.position.y, other.transform.position.z), Quaternion.identity);
-            Destroy(_particle, 0.5f);
-
-            //hit
-            if(other.GetComponent<MonsterHandler>())
+            MonsterHandler monsterHandler = other.GetComponent<MonsterHandler>();
+            if (monsterHandler)
             {
-                other.GetComponent<MonsterHandler>().Hit(_weaponDamages);
+                if (monsterHandler.canBeHit)
+                {
+                    //particles
+                    _particle = Instantiate(_hitParticles,
+                        new Vector3(other.transform.position.x, transform.position.y, other.transform.position.z), Quaternion.identity);
+
+                    Destroy(_particle, 0.5f);
+
+                    monsterHandler.Hit(_weaponDamages);
+                }
+
             }
         }
     }
