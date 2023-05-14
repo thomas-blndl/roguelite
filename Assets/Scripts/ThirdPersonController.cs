@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
 #endif
@@ -127,6 +128,8 @@ namespace StarterAssets
             }
         }
 
+        public bool isAttacking = false;
+
 
         private void Awake()
         {
@@ -162,7 +165,7 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();
-            AttackAndGravity();
+            Attack();
             GroundedCheck();
             Move();
         }
@@ -355,7 +358,7 @@ namespace StarterAssets
             }
         }
 
-        private void AttackAndGravity()
+        private void Attack()
         {
             if (Grounded)
             {
@@ -365,23 +368,18 @@ namespace StarterAssets
                     _animator.SetBool(_animIDAttack, false);
                 }
 
-                Debug.Log("attaque ? :" + _input.attack);
-                Debug.Log(_attackTimeoutDelta);
                 // Attack
                 if (_input.attack && _attackTimeoutDelta <= 0.0f)
                 {
-                    Debug.Log("je passe le input d'attaque");
-                    //TODO
-                    //Attack()
-
                     // update animator if using character
                     if (_hasAnimator)
                     {
-                        Debug.Log("je lance l'anim");
                         _animator.SetBool(_animIDAttack, true);
                     }
+                    isAttacking = true;
                     _input.attack = false;
                     _attackTimeoutDelta = AttackTimeout;
+                    StartCoroutine(ResetIsAttacking());
                 }
 
                 // attack timeout
@@ -390,28 +388,12 @@ namespace StarterAssets
                     _attackTimeoutDelta -= Time.deltaTime;
                 }
             }
-            else
-            {
-                // // reset the jump timeout timer
-                // _attackTimeoutDelta = AttackTimeout;
+        }
 
-                // // fall timeout
-                // if (_fallTimeoutDelta >= 0.0f)
-                // {
-                //     _fallTimeoutDelta -= Time.deltaTime;
-                // }
-                // else
-                // {
-                //     // update animator if using character
-                //     if (_hasAnimator)
-                //     {
-                //         _animator.SetBool(_animIDFreeFall, true);
-                //     }
-                // }
-
-                // // if we are not grounded, do not jump
-                // _input.jump = false;
-            }
+        public IEnumerator ResetIsAttacking()
+        {
+            yield return new WaitForSeconds(1.0f);
+            isAttacking = false;
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

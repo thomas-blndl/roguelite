@@ -68,7 +68,6 @@ namespace StarterAssets
 		}
 		public void AttackInput(bool newAttackState)
 		{
-			Debug.Log("attaque");
 			attack = newAttackState;
 		}
 
