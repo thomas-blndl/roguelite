@@ -12,9 +12,9 @@ public class WeaponController : MonoBehaviour
     [SerializeField]
     private GameObject _hitParticles;
     private GameObject _particle;
-    private int _weaponDamages = 5;
+    private int _weaponDamages = 3;
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (other.transform.tag == "Enemy" && thirdPersonController.isAttacking)
         {
