@@ -18,6 +18,10 @@ public class MonsterHandler : MonoBehaviour
     private NavMeshAgent _agent;
     private Rigidbody _rb;
 
+    private float _attackRange = 3.0f;
+    private float _attackCooldown = 2.0f;
+    private bool canAttack = true;
+
     private void Awake()
     {
         _anim = GetComponent<Animator>();
@@ -26,6 +30,7 @@ public class MonsterHandler : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _healthBar.value = 1;
         _hp = _maxHp;
+        GetComponent<SphereCollider>().radius = _attackRange;
     }
 
     // Update is called once per frame
@@ -84,12 +89,21 @@ public class MonsterHandler : MonoBehaviour
 
     private void WalkTowardPlayer()
     {
-        if (_agent.isActiveAndEnabled)
+        float distance = Vector3.Distance(transform.position, _agent.destination);
+        Debug.Log(transform.position);
+        Debug.Log(_agent.destination);
+        Debug.Log("distance: " + distance);
+        if (_agent.isActiveAndEnabled && distance > _attackRange)
         {
+            Debug.Log("je passe");
             _agent.SetDestination(_player.transform.position);
         }
+        else
+        {
+            Debug.Log("je passe pas");
+            _agent.SetDestination(transform.position);
+        }
 
-        Debug.Log(_agent.velocity.magnitude);
         if (_agent.velocity.magnitude < 1)
         {
             _anim.SetBool("Idle", true);
@@ -98,5 +112,24 @@ public class MonsterHandler : MonoBehaviour
         {
             _anim.SetBool("Idle", false);
         }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.tag == "Player")
+        {
+            if (canAttack)
+            {
+                canAttack = false;
+                Debug.Log("Attack" + Random.Range(1, 3));
+                StartCoroutine(ResetCanAttack());
+            }
+        }
+    }
+
+    public IEnumerator ResetCanAttack()
+    {
+        yield return new WaitForSeconds(_attackCooldown);
+        canAttack = true;
     }
 }
