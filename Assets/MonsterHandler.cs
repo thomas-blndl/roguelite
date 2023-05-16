@@ -18,8 +18,8 @@ public class MonsterHandler : MonoBehaviour
     private NavMeshAgent _agent;
     private Rigidbody _rb;
 
-    private float _attackRange = 3.0f;
-    private float _attackCooldown = 2.0f;
+    public float attackRange = 2f;
+    public float attackCooldown = 2f;
     private bool canAttack = true;
 
     private void Awake()
@@ -30,7 +30,8 @@ public class MonsterHandler : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _healthBar.value = 1;
         _hp = _maxHp;
-        GetComponent<SphereCollider>().radius = _attackRange;
+        GetComponent<SphereCollider>().radius = attackRange + 2.0f;
+        _agent.stoppingDistance = attackRange;
     }
 
     // Update is called once per frame
@@ -52,6 +53,7 @@ public class MonsterHandler : MonoBehaviour
 
     private void Die()
     {
+        canAttack = false;
         _healthBar.transform.parent.gameObject.SetActive(false);
         _agent.enabled = false;
         _anim.SetTrigger("Death");
@@ -89,19 +91,9 @@ public class MonsterHandler : MonoBehaviour
 
     private void WalkTowardPlayer()
     {
-        float distance = Vector3.Distance(transform.position, _agent.destination);
-        Debug.Log(transform.position);
-        Debug.Log(_agent.destination);
-        Debug.Log("distance: " + distance);
-        if (_agent.isActiveAndEnabled && distance > _attackRange)
+        if (_agent.isActiveAndEnabled)
         {
-            Debug.Log("je passe");
             _agent.SetDestination(_player.transform.position);
-        }
-        else
-        {
-            Debug.Log("je passe pas");
-            _agent.SetDestination(transform.position);
         }
 
         if (_agent.velocity.magnitude < 1)
@@ -116,20 +108,34 @@ public class MonsterHandler : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        //Debug.Log(other.tag);
         if (other.tag == "Player")
         {
-            if (canAttack)
-            {
-                canAttack = false;
-                Debug.Log("Attack" + Random.Range(1, 3));
-                StartCoroutine(ResetCanAttack());
-            }
+            AttackAnimation();
+        }
+    }
+
+    private void AttackAnimation()
+    {
+        _anim.ResetTrigger("Attack1");
+        _anim.ResetTrigger("Attack2");
+        if (canAttack)
+        {
+            canAttack = false;
+            int random = Random.Range(1, 3);
+            _anim.SetTrigger("Attack" + random);
+            StartCoroutine(ResetCanAttack());
         }
     }
 
     public IEnumerator ResetCanAttack()
     {
-        yield return new WaitForSeconds(_attackCooldown);
+        yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
+    }
+
+    public void OnAttack()
+    {
+        _player.GetComponent<PlayerController>().Hit(5);
     }
 }

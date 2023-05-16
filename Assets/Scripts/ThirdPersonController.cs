@@ -112,6 +112,8 @@ namespace StarterAssets
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
 
+        public GameObject equippedWeapon; 
+
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
@@ -143,7 +145,7 @@ namespace StarterAssets
         private void Start()
         {
             _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
-            
+
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
@@ -365,7 +367,7 @@ namespace StarterAssets
                 // update animator if using character
                 if (_hasAnimator)
                 {
-                    _animator.SetBool(_animIDAttack, false);
+                    _animator.ResetTrigger(_animIDAttack);
                 }
 
                 // Attack
@@ -374,12 +376,16 @@ namespace StarterAssets
                     // update animator if using character
                     if (_hasAnimator)
                     {
-                        _animator.SetBool(_animIDAttack, true);
+                        _animator.SetTrigger(_animIDAttack);
+                        _input.attack = false;
+                        _attackTimeoutDelta = AttackTimeout;
+
+                        //Collider[] hitEnemies = Physics.OverlapBox(equippedWeapon.transform.position, Vector3.one * rangeTest, equippedWeapon.transform.rotation, 6);
+                        // foreach (Collider collider in hitEnemies)
+                        // {
+                        //     Debug.Log("j'ai touché " + collider.name);
+                        // }
                     }
-                    isAttacking = true;
-                    _input.attack = false;
-                    _attackTimeoutDelta = AttackTimeout;
-                    StartCoroutine(ResetIsAttacking());
                 }
 
                 // attack timeout
@@ -390,9 +396,13 @@ namespace StarterAssets
             }
         }
 
-        public IEnumerator ResetIsAttacking()
+        public void StartAttacking()
         {
-            yield return new WaitForSeconds(1.0f);
+            isAttacking = true;
+        }
+
+        public void EndAttacking()
+        {
             isAttacking = false;
         }
 
@@ -415,6 +425,9 @@ namespace StarterAssets
             Gizmos.DrawSphere(
                 new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z),
                 GroundedRadius);
+
+            // Gizmos.matrix = equippedWeapon.transform.localToWorldMatrix;
+            // Gizmos.DrawWireCube(equippedWeapon.transform.localPosition, equippedWeapon.transform.localScale /2);
         }
 
         private void OnFootstep(AnimationEvent animationEvent)
